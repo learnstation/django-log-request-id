@@ -1,0 +1,17 @@
+*.pyc
+*.swp
+.DS_Store
+/env
+build
+dist
+MANIFEST
+docs/build/
+gh-pages/
+*egg-info/*
+.tox
+
+.project
+
+.pydevproject
+
+.settings/org.eclipse.core.resources.prefs
