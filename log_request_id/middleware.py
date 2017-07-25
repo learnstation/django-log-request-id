@@ -63,12 +63,40 @@ class RequestIDMiddleware(MiddlewareMixin):
                 pass
         return response
 
+    def _get_request_data(request):
+        data = {}
+        try:
+            data = request.data
+            if data:
+                return str(data)
+        except Exception as e:
+            print e
+        try:
+            data = request.query_params.dict()
+            if data:
+                return str(data)
+        except Exception as e:
+            print e
+        try:
+            data = dict(request.GET)
+            if data:
+                return str(data)
+        except Exception as e:
+            print e
+        try:
+            data = dict(request.POST)
+            if data:
+                return str(data)
+        except Exception as e:
+            print e
+        return str(data)
+
     def _request_pretreatment(self, request):
         self.start_time = datetime.datetime.utcnow()
         self.remote_ip = get_remote_ip(request)
         self.path = request.path
         self.method = request.method
-        self.request_data = str(request.data or request.query_params.dict())
+        self.request_data = self._get_request_data(request)
         self.module = None
         try:
             self.module = self.path.split("/")[2]
@@ -80,9 +108,10 @@ class RequestIDMiddleware(MiddlewareMixin):
         self.http_status = response.status_code
         self.response_data = ""
         self.nscloud_status = None
+        print (dir(response))
         try:
-            self.response_data = str(response.data)
-            self.nscloud_status = response.data.get("status")
+            self.response_data = str(response.content)
+            self.nscloud_status = json.loads(response.content).get("status")
         except Exception as e:
             print e
 
