@@ -16,7 +16,7 @@ url = 'https://github.com/jack-zh/django-log-request-id/'
 author = 'zzh'
 author_email = 'zzh.coder@gmail.com'
 license = 'BSD'
-install_requires = ["django>=1.3"]
+install_requires = ["django>=1.8"]
 
 
 def get_version(package):
