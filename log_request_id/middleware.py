@@ -99,7 +99,7 @@ class RequestIDMiddleware(MiddlewareMixin):
         self.request_data = self._get_request_data(request)
         self.module = None
         try:
-            self.module = self.path.split("/")[2]
+            self.module = self.path.split("/")[3]
         except Exception as e:
             print e
 
@@ -149,6 +149,7 @@ class RequestIDMiddleware(MiddlewareMixin):
             "request_data": self.request_data,
             "response_data": self.response_data,
             "taking": (self.end_time - self.start_time).microseconds,
+            "child_num": local.index_num,
             "create_time": int(time.time())
         }
         print json.dumps(data, indent=2)
