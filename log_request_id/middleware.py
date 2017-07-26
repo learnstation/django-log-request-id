@@ -39,20 +39,20 @@ class RequestIDMiddleware(MiddlewareMixin):
         local.deep_num = deep_num
         local.index_num = 0
 
-        self.parent_request_id = parent_request_id
-        self.index_num = index_num
-        self.global_request_id = global_request_id
-        self.current_request_id = current_request_id
-        self.deep_num = deep_num
+        request.nscloud_parent_request_id = parent_request_id
+        request.nscloud_index_num = index_num
+        request.nscloud_global_request_id = global_request_id
+        request.nscloud_current_request_id = current_request_id
+        request.nscloud_deep_num = deep_num
         self._request_pretreatment(request)
 
     def process_response(self, request, response):
         try:
-            self._response_pretreatment(response)
+            self._response_pretreatment(request, response)
         except Exception:
             pass
         finally:
-            self._local_data_handle()
+            self._local_data_handle(request)
             try:
                 del local.request
                 del local.global_request_id
@@ -92,25 +92,25 @@ class RequestIDMiddleware(MiddlewareMixin):
         return str(data)
 
     def _request_pretreatment(self, request):
-        self.start_time = datetime.datetime.utcnow()
-        self.remote_ip = get_remote_ip(request)
-        self.path = request.path
-        self.method = request.method
-        self.request_data = self._get_request_data(request)
-        self.module = None
+        request.nscloud_start_time = datetime.datetime.utcnow()
+        request.nscloud_remote_ip = get_remote_ip(request)
+        request.nscloud_path = request.path
+        request.nscloud_method = request.method
+        request.nscloud_request_data = self._get_request_data(request)
+        request.nscloud_module = None
         try:
             self.module = self.path.split("/")[3]
         except Exception as e:
             print e
 
-    def _response_pretreatment(self, response):
-        self.end_time = datetime.datetime.utcnow()
-        self.http_status = response.status_code
-        self.response_data = ""
-        self.nscloud_status = None
+    def _response_pretreatment(self, request, response):
+        request.nscloud_end_time = datetime.datetime.utcnow()
+        request.nscloud_http_status = response.status_code
+        request.nscloud_response_data = ""
+        request.nscloud_nscloud_status = None
         try:
-            self.response_data = str(response.content)
-            self.nscloud_status = json.loads(response.content).get("status")
+            request.nscloud_response_data = str(response.content)
+            request.nscloud_nscloud_status = json.loads(response.content).get("status")
         except Exception as e:
             print e
 
@@ -131,28 +131,25 @@ class RequestIDMiddleware(MiddlewareMixin):
 
     def _generate_id(self):
         s = uuid.uuid4().hex
-        print "current", s
         return s
 
-    def _local_data_handle(self):
+    def _local_data_handle(self, request):
         data = {
-            "global_id": self.global_request_id,
-            "parnet_id": self.parent_request_id,
-            "current_id": self.current_request_id,
-            "deep_num": self.deep_num,
-            "index_num": self.index_num,
-            "http_status": self.http_status,
-            "nscloud_status": self.nscloud_status,
-            "method": self.method,
-            "path": self.path,
-            "module": self.module,
-            "remote_ip": self.remote_ip,
-            "request_data": self.request_data,
-            "response_data": self.response_data,
-            "taking": (self.end_time - self.start_time).microseconds,
+            "global_id": request.nscloud_global_request_id,
+            "parnet_id": request.nscloud_parent_request_id,
+            "current_id": request.nscloud_current_request_id,
+            "deep_num": request.nscloud_deep_num,
+            "index_num": request.nscloud_index_num,
+            "http_status": request.nscloud_http_status,
+            "nscloud_status": request.nscloud_nscloud_status,
+            "method": request.nscloud_method,
+            "path": request.nscloud_path,
+            "module": request.nscloud_module,
+            "remote_ip": request.nscloud_remote_ip,
+            "request_data": request.nscloud_request_data,
+            "response_data": request.nscloud_response_data,
+            "taking": (request.nscloud_end_time - request.nscloud_start_time).microseconds,
             "child_num": local.index_num,
             "create_time": int(time.time())
         }
-        # print json.dumps(data, indent=2)
-        # print self.global_request_id
-        print self.parent_request_id, self.current_request_id, self.path
+        print json.dumps(data, indent=2)
