@@ -3,6 +3,7 @@ import uuid
 import time
 import datetime
 import json
+import urllib3
 
 
 try:
@@ -157,3 +158,12 @@ class RequestIDMiddleware(MiddlewareMixin):
             "create_time": int(time.time())
         }
         print json.dumps(data, indent=2)
+
+        http = urllib3.PoolManager()
+        encoded_data = json.dumps(data).encode('utf-8')
+        r = http.request(
+            'POST',
+            'http://127.0.0.1:8000/record',
+            body=encoded_data,
+            headers={'Content-Type': 'application/json'})
+        print r.data
