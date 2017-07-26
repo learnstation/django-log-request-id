@@ -50,7 +50,7 @@ class RequestIDMiddleware(MiddlewareMixin):
 
     def process_response(self, request, response):
         if request.path[:5] != "/api/":
-            return
+            return response
         try:
             self._response_pretreatment(request, response)
         except Exception:
