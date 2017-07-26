@@ -63,32 +63,32 @@ class RequestIDMiddleware(MiddlewareMixin):
                 pass
         return response
 
-    def _get_request_data(request):
+    def _get_request_data(self, request):
         data = {}
         try:
             data = request.data
             if data:
                 return str(data)
         except Exception as e:
-            print e
+            pass
         try:
             data = request.query_params.dict()
             if data:
                 return str(data)
         except Exception as e:
-            print e
+            pass
         try:
             data = dict(request.GET)
             if data:
                 return str(data)
         except Exception as e:
-            print e
+            pass
         try:
             data = dict(request.POST)
             if data:
                 return str(data)
         except Exception as e:
-            print e
+            pass
         return str(data)
 
     def _request_pretreatment(self, request):
@@ -108,7 +108,6 @@ class RequestIDMiddleware(MiddlewareMixin):
         self.http_status = response.status_code
         self.response_data = ""
         self.nscloud_status = None
-        print (dir(response))
         try:
             self.response_data = str(response.content)
             self.nscloud_status = json.loads(response.content).get("status")
@@ -131,7 +130,9 @@ class RequestIDMiddleware(MiddlewareMixin):
             return self._generate_id(), None, self._generate_id(), 0, 0
 
     def _generate_id(self):
-        return uuid.uuid4().hex
+        s = uuid.uuid4().hex
+        print "current", s
+        return s
 
     def _local_data_handle(self):
         data = {
@@ -152,4 +153,6 @@ class RequestIDMiddleware(MiddlewareMixin):
             "child_num": local.index_num,
             "create_time": int(time.time())
         }
-        print json.dumps(data, indent=2)
+        # print json.dumps(data, indent=2)
+        # print self.global_request_id
+        print self.parent_request_id, self.current_request_id, self.path
