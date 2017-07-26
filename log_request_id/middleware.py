@@ -99,7 +99,7 @@ class RequestIDMiddleware(MiddlewareMixin):
         request.nscloud_request_data = self._get_request_data(request)
         request.nscloud_module = None
         try:
-            self.module = self.path.split("/")[3]
+            request.module = request.path.split("/")[3]
         except Exception as e:
             print e
 
