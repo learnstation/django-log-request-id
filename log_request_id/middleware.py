@@ -31,6 +31,8 @@ def get_remote_ip(request):
 class RequestIDMiddleware(MiddlewareMixin):
 
     def process_request(self, request):
+        if request.path[:5] != "/api/":
+            return
         global_request_id, parent_request_id, current_request_id, deep_num, index_num = self._get_request_id(request)
 
         local.request = request
@@ -47,6 +49,8 @@ class RequestIDMiddleware(MiddlewareMixin):
         self._request_pretreatment(request)
 
     def process_response(self, request, response):
+        if request.path[:5] != "/api/":
+            return
         try:
             self._response_pretreatment(request, response)
         except Exception:
@@ -101,7 +105,7 @@ class RequestIDMiddleware(MiddlewareMixin):
         try:
             request.module = request.path.split("/")[3]
         except Exception as e:
-            print e
+            pass
 
     def _response_pretreatment(self, request, response):
         request.nscloud_end_time = datetime.datetime.utcnow()
@@ -112,7 +116,7 @@ class RequestIDMiddleware(MiddlewareMixin):
             request.nscloud_response_data = str(response.content)
             request.nscloud_nscloud_status = json.loads(response.content).get("status")
         except Exception as e:
-            print e
+            pass
 
     def _get_request_id(self, request):
         try:
