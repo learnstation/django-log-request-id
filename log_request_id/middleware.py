@@ -70,6 +70,7 @@ class RequestIDMiddleware(MiddlewareMixin):
                 del local.current_request_id
                 del local.deep_num
                 del local.index_num
+                del local.record_flag
             except AttributeError:
                 pass
         return response
@@ -172,13 +173,13 @@ class RequestIDMiddleware(MiddlewareMixin):
             "child_num": local.index_num,
             "create_time": int(time.time())
         }
-        print json.dumps(data, indent=2)
+        # print json.dumps(data, indent=2)
 
-        http = urllib3.PoolManager()
-        encoded_data = json.dumps(data).encode('utf-8')
-        r = http.request(
-            'POST',
-            'http://127.0.0.1:8000/record',
-            body=encoded_data,
-            headers={'Content-Type': 'application/json'})
-        print r.data
+        # http = urllib3.PoolManager()
+        # encoded_data = json.dumps(data).encode('utf-8')
+        # r = http.request(
+        #     'POST',
+        #     'http://127.0.0.1:8000/record',
+        #     body=encoded_data,
+        #     headers={'Content-Type': 'application/json'})
+        # print r.data
