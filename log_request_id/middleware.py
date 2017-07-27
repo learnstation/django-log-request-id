@@ -103,8 +103,10 @@ class RequestIDMiddleware(MiddlewareMixin):
         request.nscloud_method = request.method
         request.nscloud_request_data = self._get_request_data(request)
         request.nscloud_module = None
+        request.nscloud_api_type = "other"
         try:
             request.nscloud_module = request.path.split("/")[3]
+            request.nscloud_api_type = request.path.split("/")[2]
         except Exception as e:
             pass
 
@@ -150,6 +152,7 @@ class RequestIDMiddleware(MiddlewareMixin):
             "method": request.nscloud_method,
             "path": request.nscloud_path,
             "module": request.nscloud_module,
+            "api_type": request.nscloud_api_type,
             "remote_ip": request.nscloud_remote_ip,
             "request_data": request.nscloud_request_data,
             "response_data": request.nscloud_response_data,
