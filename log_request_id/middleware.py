@@ -33,7 +33,9 @@ class RequestIDMiddleware(MiddlewareMixin):
 
     def process_request(self, request):
         if request.path[:5] != "/api/":
+            local.record_flag = False
             return
+        local.record_flag = True
         global_request_id, parent_request_id, current_request_id, deep_num, index_num = self._get_request_id(request)
 
         local.request = request
@@ -51,6 +53,10 @@ class RequestIDMiddleware(MiddlewareMixin):
 
     def process_response(self, request, response):
         if request.path[:5] != "/api/":
+            try:
+                del local.record_flag
+            except Exception as e:
+                pass
             return response
         try:
             self._response_pretreatment(request, response)
@@ -73,28 +79,28 @@ class RequestIDMiddleware(MiddlewareMixin):
         try:
             data = request.data
             if data:
-                return str(data)
+                return data
         except Exception as e:
             pass
         try:
             data = request.query_params.dict()
             if data:
-                return str(data)
+                return data
         except Exception as e:
             pass
         try:
             data = dict(request.GET)
             if data:
-                return str(data)
+                return data
         except Exception as e:
             pass
         try:
             data = dict(request.POST)
             if data:
-                return str(data)
+                return data
         except Exception as e:
             pass
-        return str(data)
+        return data
 
     def _request_pretreatment(self, request):
         request.nscloud_start_time = datetime.datetime.utcnow()
@@ -116,7 +122,7 @@ class RequestIDMiddleware(MiddlewareMixin):
         request.nscloud_response_data = ""
         request.nscloud_nscloud_status = None
         try:
-            request.nscloud_response_data = str(response.content)
+            request.nscloud_response_data = response.content
             request.nscloud_nscloud_status = json.loads(response.content).get("status")
         except Exception as e:
             pass
@@ -141,9 +147,15 @@ class RequestIDMiddleware(MiddlewareMixin):
         return s
 
     def _local_data_handle(self, request):
+        request_data = '""'
+        if request.nscloud_request_data:
+            request_data = json.dumps(request.nscloud_request_data)
+        response_data = '""'
+        if request.nscloud_response_data:
+            response_data = request.nscloud_response_data
         data = {
             "global_id": request.nscloud_global_request_id,
-            "parnet_id": request.nscloud_parent_request_id,
+            "parent_id": request.nscloud_parent_request_id,
             "current_id": request.nscloud_current_request_id,
             "deep_num": request.nscloud_deep_num,
             "index_num": request.nscloud_index_num,
@@ -154,8 +166,8 @@ class RequestIDMiddleware(MiddlewareMixin):
             "module": request.nscloud_module,
             "api_type": request.nscloud_api_type,
             "remote_ip": request.nscloud_remote_ip,
-            "request_data": request.nscloud_request_data,
-            "response_data": request.nscloud_response_data,
+            "request_data": request_data,
+            "response_data": response_data,
             "taking": (request.nscloud_end_time - request.nscloud_start_time).microseconds,
             "child_num": local.index_num,
             "create_time": int(time.time())
